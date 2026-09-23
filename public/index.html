@@ -10,24 +10,28 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f5f4f1; --card: #ffffff; --text: #1d1d1f; --muted: #6e6e73; --line: #e5e3de;
-    --accent: #1d1d1f; --accent-text: #ffffff; --soft: #f0eee9; --ok: #1f8a4c; --err: #c0392b;
-    --radius: 16px; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+    --bg: #f5f4f1; --card: #ffffff; --text: #1d1d1f; --muted: #6e6e73; --line: #e7e5e0;
+    --accent: #1d1d1f; --accent-text: #ffffff; --soft: #f1efea; --ok: #1f8a4c; --err: #c0392b;
+    --radius: 18px; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.06);
+    --shadow-hover: 0 2px 4px rgba(0,0,0,.05), 0 18px 40px rgba(0,0,0,.12);
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg:#111113; --card:#1c1c1f; --text:#f2f2f2; --muted:#9a9aa0; --line:#2c2c30;
       --accent:#f2f2f2; --accent-text:#111113; --soft:#26262a; --ok:#4cc27e; --err:#ff6b5b;
-      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35); }
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+      --shadow-hover: 0 2px 4px rgba(0,0,0,.4), 0 18px 40px rgba(0,0,0,.5); }
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Cairo', system-ui, sans-serif; line-height: 1.6; }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 16px 64px; }
   header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 12px; }
   h1 { font-size: 24px; margin: 0; font-weight: 700; }
+  h2 { font-size: 18px; margin: 0; font-weight: 700; }
   .sub { color: var(--muted); font-size: 14px; margin: 2px 0 0; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
   .step { display: flex; align-items: center; gap: 10px; font-weight: 700; margin-bottom: 14px; }
   .num { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-size: 13px; flex: none; }
+  .opt { font-weight: 400; font-size: 13px; color: var(--muted); background: var(--soft); padding: 1px 10px; border-radius: 999px; }
   input[type=text], input[type=password] { width: 100%; font: inherit; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--soft); color: var(--text); outline: none; transition: border-color .15s; }
   input:focus { border-color: var(--text); }
   button { font: inherit; cursor: pointer; border: 0; border-radius: 12px; padding: 12px 18px; font-weight: 600; transition: opacity .15s, transform .05s; }
@@ -37,32 +41,52 @@
   .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); padding: 8px 14px; font-size: 14px; }
   .full { width: 100%; }
   .hidden { display: none !important; }
+  .muted { color: var(--muted); font-size: 14px; }
 
-  .results { margin-top: 10px; max-height: 300px; overflow-y: auto; border-radius: 12px; }
+  /* Upload area: product picker + image side by side on desktop */
+  .upload { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+  @media (max-width: 720px) { .upload { grid-template-columns: 1fr; } }
+
+  .results { margin-top: 10px; max-height: 280px; overflow-y: auto; }
   .prod { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 10px; cursor: pointer; }
   .prod:hover { background: var(--soft); }
   .prod img, .prod .ph { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: var(--soft); flex: none; }
   .prod .t { font-weight: 600; font-size: 15px; }
   .prod .h { color: var(--muted); font-size: 12px; direction: ltr; text-align: right; }
   .selected { display: flex; align-items: center; gap: 12px; padding: 10px; border: 2px solid var(--text); border-radius: 12px; }
+  .selected img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--soft); flex: none; }
   .selected .grow { flex: 1; min-width: 0; }
-  .muted { color: var(--muted); font-size: 14px; }
+  .none-note { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--soft); font-size: 13px; color: var(--muted); }
 
-  .drop { border: 2px dashed var(--line); border-radius: 14px; padding: 32px 16px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+  .drop { display: block; border: 2px dashed var(--line); border-radius: 14px; padding: 36px 16px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
   .drop.over, .drop:hover { border-color: var(--text); background: var(--soft); }
   .drop svg { width: 36px; height: 36px; color: var(--muted); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-top: 14px; }
-  .thumb { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--soft); }
-  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .thumb .x { position: absolute; top: 6px; left: 6px; width: 26px; height: 26px; padding: 0; border-radius: 50%; background: rgba(0,0,0,.6); color: #fff; font-size: 16px; line-height: 26px; }
-  .thumb .state { position: absolute; inset: auto 0 0 0; padding: 4px; font-size: 12px; text-align: center; color: #fff; background: rgba(0,0,0,.55); }
-  .thumb.done .state { background: var(--ok); }
-  .thumb.fail .state { background: var(--err); }
-  .thumb .cap { position: absolute; inset: auto 0 0 0; padding: 4px 6px; font-size: 11px; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.75)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
+  .preview { position: relative; border-radius: 14px; overflow: hidden; background: var(--soft); aspect-ratio: 4 / 3; }
+  .preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .preview .change { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,.6); color: #fff; padding: 6px 12px; font-size: 13px; border-radius: 999px; }
   .msg { margin-top: 12px; font-size: 14px; }
   .msg.ok { color: var(--ok); } .msg.err { color: var(--err); }
-  .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+
+  /* Recent cards */
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .rcard { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform .2s, box-shadow .2s; display: flex; flex-direction: column; }
+  .rcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+  .rcard .img { aspect-ratio: 4 / 5; background: var(--soft); overflow: hidden; }
+  .rcard .img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s; }
+  .rcard:hover .img img { transform: scale(1.04); }
+  .rcard .img .processing { height: 100%; display: grid; place-items: center; color: var(--muted); font-size: 13px; }
+  .rcard .body { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-top: 1px solid var(--line); }
+  .rcard .pimg { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; background: var(--soft); flex: none; }
+  .rcard .info { min-width: 0; flex: 1; }
+  .rcard .pname { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rcard .pname.none { color: var(--muted); font-weight: 600; }
+  .rcard .date { color: var(--muted); font-size: 12px; }
+  .rcard.new { outline: 2px solid var(--ok); outline-offset: -2px; }
+  .skeleton { background: linear-gradient(90deg, var(--soft) 25%, var(--line) 50%, var(--soft) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: var(--radius); aspect-ratio: 4 / 5.6; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+  .empty { text-align: center; padding: 40px 16px; color: var(--muted); }
+
   .login { max-width: 380px; margin: 12vh auto 0; }
   .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -87,44 +111,49 @@
     <header>
       <div>
         <h1>رفع صور التقييمات</h1>
-        <p class="sub">الصور بتتضاف لـ Product Review Images وتظهر في صفحة المنتج</p>
+        <p class="sub">الصورة بتتضاف لـ Product Review Images وتظهر في المتجر</p>
       </div>
       <button id="logout" class="btn-ghost">خروج</button>
     </header>
 
-    <section class="card">
-      <div class="step"><span class="num">1</span>اختار المنتج</div>
-      <div id="pickBox">
-        <input id="search" type="text" placeholder="ابحث باسم المنتج…" autocomplete="off">
-        <div id="results" class="results"></div>
-      </div>
-      <div id="selectedBox" class="selected hidden">
-        <img id="selImg" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--soft)">
-        <div class="grow"><div id="selTitle" style="font-weight:700"></div><div id="selHandle" class="muted" style="direction:ltr;text-align:right"></div></div>
-        <button id="changeProd" class="btn-ghost">تغيير</button>
-      </div>
-    </section>
+    <div class="upload">
+      <section class="card">
+        <div class="step"><span class="num">1</span>المنتج <span class="opt">اختياري</span></div>
+        <div id="pickBox">
+          <input id="search" type="text" placeholder="ابحث باسم المنتج…" autocomplete="off">
+          <div id="results" class="results"></div>
+        </div>
+        <div id="selectedBox" class="selected hidden">
+          <img id="selImg" alt="">
+          <div class="grow"><div id="selTitle" style="font-weight:700"></div><div id="selHandle" class="muted" style="direction:ltr;text-align:right"></div></div>
+          <button id="changeProd" class="btn-ghost">إلغاء</button>
+        </div>
+        <div id="noneNote" class="none-note">مش لازم تختار منتج — لو سبته فاضي الصورة هتظهر في بوب-أب التقييمات العام بس.</div>
+      </section>
 
-    <section class="card">
-      <div class="step"><span class="num">2</span>ارفع الصور</div>
-      <label id="drop" class="drop">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-        <div style="font-weight:600;margin-top:6px">اسحب الصور هنا أو دوس للاختيار</div>
-        <div class="muted">JPG · PNG · WEBP — تقدر تختار أكتر من صورة</div>
-        <input id="fileInput" type="file" accept="image/*" multiple hidden>
-      </label>
-      <div id="previews" class="grid"></div>
-      <button id="uploadBtn" class="btn full" style="margin-top:16px" disabled>رفع وإضافة للمنتج</button>
-      <div id="uploadMsg" class="msg"></div>
-    </section>
+      <section class="card">
+        <div class="step"><span class="num">2</span>الصورة</div>
+        <label id="drop" class="drop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+          <div style="font-weight:600;margin-top:6px">اسحب الصورة هنا أو دوس للاختيار</div>
+          <div class="muted">صورة واحدة — JPG · PNG · WEBP</div>
+          <input id="fileInput" type="file" accept="image/*" hidden>
+        </label>
+        <div id="preview" class="preview hidden">
+          <img id="previewImg" alt="">
+          <button id="changeImg" class="change" type="button">تغيير الصورة</button>
+        </div>
+        <button id="uploadBtn" class="btn full" style="margin-top:16px" disabled>رفع الصورة</button>
+        <div id="uploadMsg" class="msg"></div>
+      </section>
+    </div>
 
-    <section class="card">
+    <section>
       <div class="row">
-        <div class="step" style="margin:0"><span class="num">3</span>آخر الصور المضافة</div>
+        <h2>الصور المضافة</h2>
         <button id="refresh" class="btn-ghost">تحديث</button>
       </div>
-      <div id="recent" class="grid" style="margin-top:0"></div>
-      <div id="recentMsg" class="muted"></div>
+      <div id="recent" class="cards"></div>
     </section>
   </div>
 </div>
@@ -137,7 +166,9 @@ const store = {
 };
 let password = store.get();
 let product = null;
-let files = []; // { file, url, status }
+let file = null, fileUrl = null;
+let busy = false;
+let lastCreatedId = null;
 
 async function api(path, { method = 'GET', body } = {}) {
   const res = await fetch(path, {
@@ -151,6 +182,7 @@ async function api(path, { method = 'GET', body } = {}) {
   return data;
 }
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const fmtDate = (iso) => { try { return new Date(iso).toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' }); } catch { return ''; } };
 
 /* ---------- Auth ---------- */
 function showApp() { $('loginView').classList.add('hidden'); $('appView').classList.remove('hidden'); searchProducts(''); loadRecent(); }
@@ -164,7 +196,7 @@ $('loginForm').addEventListener('submit', async (e) => {
 $('logout').onclick = logout;
 if (password) api('/api/login', { method: 'POST', body: {} }).then(showApp).catch(() => {});
 
-/* ---------- Products ---------- */
+/* ---------- Product (optional) ---------- */
 let searchTimer, searchSeq = 0;
 $('search').addEventListener('input', (e) => { clearTimeout(searchTimer); searchTimer = setTimeout(() => searchProducts(e.target.value), 300); });
 async function searchProducts(q) {
@@ -184,89 +216,91 @@ async function searchProducts(q) {
 function selectProduct(p) {
   product = p;
   $('selImg').src = p.image || ''; $('selTitle').textContent = p.title; $('selHandle').textContent = p.handle;
-  $('pickBox').classList.add('hidden'); $('selectedBox').classList.remove('hidden');
-  updateButton();
+  $('pickBox').classList.add('hidden'); $('noneNote').classList.add('hidden'); $('selectedBox').classList.remove('hidden');
 }
-$('changeProd').onclick = () => { product = null; $('selectedBox').classList.add('hidden'); $('pickBox').classList.remove('hidden'); $('search').focus(); updateButton(); };
+function clearProduct() {
+  product = null;
+  $('selectedBox').classList.add('hidden'); $('pickBox').classList.remove('hidden'); $('noneNote').classList.remove('hidden');
+}
+$('changeProd').onclick = clearProduct;
 
-/* ---------- Files ---------- */
+/* ---------- Single image ---------- */
 const drop = $('drop');
 ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', (e) => addFiles(e.dataTransfer.files));
-$('fileInput').addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
+drop.addEventListener('drop', (e) => setFile(e.dataTransfer.files[0]));
+$('fileInput').addEventListener('change', (e) => { setFile(e.target.files[0]); e.target.value = ''; });
+$('changeImg').onclick = () => { if (!busy) $('fileInput').click(); };
 
-function addFiles(list) {
-  for (const f of list) if (f.type.startsWith('image/')) files.push({ file: f, url: URL.createObjectURL(f), status: 'pending' });
-  $('uploadMsg').textContent = ''; renderPreviews();
+function setFile(f) {
+  if (!f) return;
+  if (!f.type.startsWith('image/')) { showMsg('err', 'الملف لازم يكون صورة'); return; }
+  if (fileUrl) URL.revokeObjectURL(fileUrl);
+  file = f; fileUrl = URL.createObjectURL(f);
+  $('previewImg').src = fileUrl;
+  drop.classList.add('hidden'); $('preview').classList.remove('hidden');
+  showMsg('', ''); $('uploadBtn').disabled = false;
 }
-function renderPreviews() {
-  const label = { pending: '', uploading: '<span class="spinner"></span>', done: 'تم ✓', fail: 'فشل' };
-  $('previews').innerHTML = files.map((f, i) => `
-    <div class="thumb ${f.status}">
-      <img src="${f.url}" alt="">
-      ${f.status === 'pending' ? `<button class="x" data-i="${i}" aria-label="حذف">×</button>` : `<div class="state">${label[f.status]}</div>`}
-    </div>`).join('');
-  $('previews').querySelectorAll('.x').forEach((b) => b.onclick = (e) => { e.preventDefault(); URL.revokeObjectURL(files[b.dataset.i].url); files.splice(b.dataset.i, 1); renderPreviews(); });
-  updateButton();
+function resetFile() {
+  if (fileUrl) URL.revokeObjectURL(fileUrl);
+  file = null; fileUrl = null;
+  $('preview').classList.add('hidden'); drop.classList.remove('hidden');
+  $('uploadBtn').disabled = true;
 }
-function updateButton() { $('uploadBtn').disabled = !product || !files.some((f) => f.status === 'pending' || f.status === 'fail'); }
-
-async function uploadOne(item) {
-  const { file } = item;
-  const target = await api('/api/staged', { method: 'POST', body: { filename: file.name, mimeType: file.type, fileSize: file.size } });
-  const form = new FormData();
-  target.parameters.forEach((p) => form.append(p.name, p.value));
-  form.append('file', file);
-  const up = await fetch(target.url, { method: 'POST', body: form });
-  if (!up.ok) throw new Error('فشل رفع الملف لشوبيفاي');
-  await api('/api/create', { method: 'POST', body: { resourceUrl: target.resourceUrl, productId: product.id, alt: product.title } });
-}
+function showMsg(type, text) { $('uploadMsg').className = 'msg ' + type; $('uploadMsg').textContent = text; }
 
 $('uploadBtn').onclick = async () => {
-  const queue = files.filter((f) => f.status === 'pending' || f.status === 'fail');
-  $('uploadBtn').disabled = true; $('uploadMsg').className = 'msg'; $('uploadMsg').textContent = '';
-  let ok = 0, lastErr = '';
-  for (const item of queue) {
-    item.status = 'uploading'; renderPreviews(); $('uploadBtn').disabled = true;
-    try { await uploadOne(item); item.status = 'done'; ok++; }
-    catch (err) { item.status = 'fail'; lastErr = err.message; }
-    renderPreviews(); $('uploadBtn').disabled = true;
-  }
-  const failed = queue.length - ok;
-  $('uploadMsg').className = 'msg ' + (failed ? 'err' : 'ok');
-  $('uploadMsg').textContent = failed ? `اترفع ${ok} وفشل ${failed} — ${lastErr}` : `تمام! اتضافت ${ok} صورة لـ «${product.title}»`;
-  updateButton();
-  if (ok) {
+  if (!file || busy) return;
+  busy = true; $('uploadBtn').disabled = true;
+  $('uploadBtn').innerHTML = '<span class="spinner"></span> بيرفع…'; showMsg('', '');
+  try {
+    const target = await api('/api/staged', { method: 'POST', body: { filename: file.name, mimeType: file.type, fileSize: file.size } });
+    const form = new FormData();
+    target.parameters.forEach((p) => form.append(p.name, p.value));
+    form.append('file', file);
+    const up = await fetch(target.url, { method: 'POST', body: form });
+    if (!up.ok) throw new Error('فشل رفع الملف لشوبيفاي');
+    const result = await api('/api/create', {
+      method: 'POST',
+      body: { resourceUrl: target.resourceUrl, productId: product?.id || null, alt: product?.title || '' },
+    });
+    lastCreatedId = result.metaobject?.id || null;
+    showMsg('ok', product ? `تمام! الصورة اتضافت لـ «${product.title}»` : 'تمام! الصورة اتضافت بدون منتج');
+    resetFile(); clearProduct();
     loadRecent();
-    if (!failed) setTimeout(() => { files.forEach((f) => URL.revokeObjectURL(f.url)); files = []; renderPreviews(); }, 2500);
+  } catch (err) {
+    showMsg('err', err.message);
+    $('uploadBtn').disabled = false;
+  } finally {
+    busy = false; $('uploadBtn').textContent = 'رفع الصورة';
+    if (!file) $('uploadBtn').disabled = true;
   }
 };
 
-/* ---------- Recent ---------- */
+/* ---------- Recent cards ---------- */
 let recentRetries = 0;
-$('refresh').onclick = loadRecent;
+$('refresh').onclick = () => { recentRetries = 0; loadRecent(); };
 async function loadRecent() {
-  $('recentMsg').innerHTML = '<span class="spinner"></span> بيحمّل…';
+  if (!$('recent').children.length) $('recent').innerHTML = '<div class="skeleton"></div>'.repeat(4);
   try {
     const list = await api('/api/recent');
-    $('recentMsg').textContent = list.length ? '' : 'لسه مفيش صور';
-    $('recent').innerHTML = list.map((r) => `
-      <div class="thumb" title="${esc(r.product)}">
-        ${r.image ? `<img src="${esc(r.image)}" alt="" loading="lazy">` : ''}
-        <button class="x" data-id="${esc(r.id)}" aria-label="حذف">×</button>
-        <div class="cap">${esc(r.product)}</div>
-      </div>`).join('');
-    $('recent').querySelectorAll('.x').forEach((b) => b.onclick = async () => {
-      if (!confirm('تمسح الصورة دي من التقييمات؟')) return;
-      b.disabled = true;
-      try { await api('/api/delete', { method: 'POST', body: { id: b.dataset.id } }); b.closest('.thumb').remove(); }
-      catch (err) { alert(err.message); b.disabled = false; }
-    });
-    // New files may still be processing on Shopify's side — refresh once if any image is missing.
+    $('recent').innerHTML = list.length ? list.map((r) => `
+      <article class="rcard${r.id === lastCreatedId ? ' new' : ''}">
+        <div class="img">${r.image ? `<img src="${esc(r.image)}" alt="${esc(r.product || '')}" loading="lazy">` : '<div class="processing"><span><span class="spinner"></span> شوبيفاي بيجهّز الصورة…</span></div>'}</div>
+        <div class="body">
+          ${r.productImage ? `<img class="pimg" src="${esc(r.productImage)}" alt="">` : ''}
+          <div class="info">
+            <div class="pname${r.product ? '' : ' none'}">${r.product ? esc(r.product) : 'بدون منتج'}</div>
+            <div class="date">${esc(fmtDate(r.updatedAt))}</div>
+          </div>
+        </div>
+      </article>`).join('') : '<div class="empty card" style="grid-column:1/-1">لسه مفيش صور مضافة</div>';
+    // Newly created files take a few seconds to process on Shopify's side.
     if (list.some((r) => !r.image) && recentRetries++ < 5) setTimeout(loadRecent, 4000);
     else if (list.every((r) => r.image)) recentRetries = 0;
-  } catch (err) { $('recentMsg').textContent = err.message; }
+  } catch (err) {
+    $('recent').innerHTML = `<div class="empty card msg err" style="grid-column:1/-1">${esc(err.message)}</div>`;
+  }
 }
 </script>
 </body>

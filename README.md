@@ -1,6 +1,6 @@
 # Kewi — رفع صور التقييمات
 
-صفحة ويب محمية بكلمة سر: تختار منتج ← ترفع صورة أو أكتر ← كل صورة تتضاف كـ entry في الـ metaobject `product_review_images` (الحقلين `review_image` و `product`)، فتظهر علطول في صفحة المنتج وفي بوب-أب التقييمات.
+صفحة ويب محمية بكلمة سر: تختار منتج (اختياري) ← ترفع صورة واحدة ← تتضاف كـ entry في الـ metaobject `product_review_images` (الحقلين `review_image` و `product`)، فتظهر علطول في صفحة المنتج وفي بوب-أب التقييمات.
 
 ## 1) اعمل App في شوبيفاي
 Shopify Admin ← **Settings ← Apps ← Develop apps** (أو من Dev Dashboard) ← أنشئ app جديد، وادّيله الصلاحيات دي (Admin API scopes):
@@ -26,7 +26,8 @@ Shopify Admin ← **Settings ← Apps ← Develop apps** (أو من Dev Dashboar
 ## ملاحظات
 - الصورة بتترفع من المتصفح لشوبيفاي مباشرة (staged upload)، فمفيش حد لحجم الصورة من Vercel.
 - التوكن وكلمة السر موجودين على السيرفر بس، مش في الصفحة.
-- المسح من "آخر الصور المضافة" بيمسح الـ entry من التقييمات؛ الصورة نفسها بتفضل في Settings ← Files.
+- الصورة من غير منتج بتظهر في بوب-أب التقييمات العام بس (مش في صفحة منتج معين). لو حقل `product` في الـ definition متعلم Required، لازم تشيل الـ Required عشان الرفع من غير منتج يشتغل.
+- مفيش حذف من الصفحة؛ المسح بيتم من Shopify Admin ← Content ← Metaobjects.
 - لو الـ metaobject definition متفعّل فيه **Active/Draft**، الـ entries بتتعمل Active تلقائياً.
 
 ## تشغيل محلي

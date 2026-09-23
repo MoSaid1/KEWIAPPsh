@@ -9,10 +9,10 @@ export default route('GET', async (req, res) => {
           id
           updatedAt
           image: field(key: "review_image") {
-            reference { ... on MediaImage { image { url(transform: { maxWidth: 300 }) } } }
+            reference { ... on MediaImage { image { url(transform: { maxWidth: 600 }) } } }
           }
           product: field(key: "product") {
-            reference { ... on Product { id title } }
+            reference { ... on Product { id title featuredMedia { preview { image { url(transform: { maxWidth: 80 }) } } } } }
           }
         }
       }
@@ -24,7 +24,8 @@ export default route('GET', async (req, res) => {
       id: n.id,
       updatedAt: n.updatedAt,
       image: n.image?.reference?.image?.url || null,
-      product: n.product?.reference?.title || '—',
+      product: n.product?.reference?.title || null,
+      productImage: n.product?.reference?.featuredMedia?.preview?.image?.url || null,
     }))
   );
 });

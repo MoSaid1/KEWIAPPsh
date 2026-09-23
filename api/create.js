@@ -17,12 +17,13 @@ async function isPublishable() {
   return publishable;
 }
 
-// POST /api/create { resourceUrl, productId, alt }
+// POST /api/create { resourceUrl, productId?, alt }  (productId is optional)
 // 1) registers the uploaded file in Shopify Files, 2) creates a metaobject entry linking it to the product.
 export default route('POST', async (req, res) => {
   const { resourceUrl, productId, alt } = req.body || {};
-  if (!resourceUrl || !String(productId || '').startsWith('gid://shopify/Product/')) {
-    return res.status(400).json({ error: 'بيانات ناقصة' });
+  if (!resourceUrl) return res.status(400).json({ error: 'بيانات ناقصة' });
+  if (productId && !String(productId).startsWith('gid://shopify/Product/')) {
+    return res.status(400).json({ error: 'المنتج غلط' });
   }
 
   const fileData = await gql(
@@ -36,11 +37,9 @@ export default route('POST', async (req, res) => {
 
   const metaobject = {
     type: METAOBJECT_TYPE,
-    fields: [
-      { key: 'review_image', value: fileId },
-      { key: 'product', value: productId },
-    ],
+    fields: [{ key: 'review_image', value: fileId }],
   };
+  if (productId) metaobject.fields.push({ key: 'product', value: productId });
   if (await isPublishable()) metaobject.capabilities = { publishable: { status: 'ACTIVE' } };
 
   const moData = await gql(
