@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>رفع صور التقييمات</title>
+<title>Kewi Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -12,26 +12,23 @@
   :root {
     --bg: #f5f4f1; --card: #ffffff; --text: #1d1d1f; --muted: #6e6e73; --line: #e7e5e0;
     --accent: #1d1d1f; --accent-text: #ffffff; --soft: #f1efea; --ok: #1f8a4c; --err: #c0392b;
+    --side: #1d1d1f; --side-text: #c9c9ce; --side-active: #ffffff; --side-hover: rgba(255,255,255,.08);
     --radius: 18px; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.06);
     --shadow-hover: 0 2px 4px rgba(0,0,0,.05), 0 18px 40px rgba(0,0,0,.12);
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg:#111113; --card:#1c1c1f; --text:#f2f2f2; --muted:#9a9aa0; --line:#2c2c30;
       --accent:#f2f2f2; --accent-text:#111113; --soft:#26262a; --ok:#4cc27e; --err:#ff6b5b;
+      --side:#0a0a0b; --side-text:#9a9aa0;
       --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
       --shadow-hover: 0 2px 4px rgba(0,0,0,.4), 0 18px 40px rgba(0,0,0,.5); }
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Cairo', system-ui, sans-serif; line-height: 1.6; }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 16px 64px; }
-  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 12px; }
-  h1 { font-size: 24px; margin: 0; font-weight: 700; }
+  h1 { font-size: 26px; margin: 0; font-weight: 700; }
   h2 { font-size: 18px; margin: 0; font-weight: 700; }
   .sub { color: var(--muted); font-size: 14px; margin: 2px 0 0; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
-  .step { display: flex; align-items: center; gap: 10px; font-weight: 700; margin-bottom: 14px; }
-  .num { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-size: 13px; flex: none; }
-  .opt { font-weight: 400; font-size: 13px; color: var(--muted); background: var(--soft); padding: 1px 10px; border-radius: 999px; }
   input[type=text], input[type=password] { width: 100%; font: inherit; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--soft); color: var(--text); outline: none; transition: border-color .15s; }
   input:focus { border-color: var(--text); }
   button { font: inherit; cursor: pointer; border: 0; border-radius: 12px; padding: 12px 18px; font-weight: 600; transition: opacity .15s, transform .05s; }
@@ -42,11 +39,75 @@
   .full { width: 100%; }
   .hidden { display: none !important; }
   .muted { color: var(--muted); font-size: 14px; }
+  .msg { margin-top: 12px; font-size: 14px; }
+  .msg.ok { color: var(--ok); } .msg.err { color: var(--err); }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  svg.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-  /* Upload area: product picker + image side by side on desktop */
+  /* ---------- Login ---------- */
+  .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+  .login { width: 100%; max-width: 380px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; letter-spacing: .5px; }
+  .brand .logo { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-size: 16px; }
+
+  /* ---------- Shell ---------- */
+  .shell { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+  .sidebar { background: var(--side); color: var(--side-text); padding: 22px 14px; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 0; height: 100vh; }
+  .sidebar .brand { color: #fff; padding: 4px 10px 22px; }
+  .sidebar .brand .logo { background: #fff; color: #1d1d1f; }
+  .nav-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: .55; padding: 10px 12px 4px; }
+  .nav a { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 12px; color: inherit; text-decoration: none; font-weight: 600; font-size: 15px; transition: background .15s, color .15s; }
+  .nav a:hover { background: var(--side-hover); color: #fff; }
+  .nav a.active { background: rgba(255,255,255,.12); color: var(--side-active); }
+  .nav a .badge { margin-inline-start: auto; font-size: 12px; background: rgba(255,255,255,.14); color: #fff; padding: 0 9px; border-radius: 999px; }
+  .sidebar .foot { margin-top: auto; }
+  .sidebar .foot a { color: var(--side-text); }
+  .main { min-width: 0; padding: 32px 32px 64px; }
+  .page { max-width: 1080px; margin: 0 auto; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+
+  @media (max-width: 820px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { position: fixed; inset: auto 0 0 0; top: auto; height: auto; flex-direction: row; padding: 8px; z-index: 20; justify-content: space-around; gap: 0; }
+    .sidebar .brand, .nav-label { display: none; }
+    .nav { display: contents; }
+    .nav a { flex-direction: column; gap: 2px; font-size: 11px; padding: 6px 10px; }
+    .nav a .badge { display: none; }
+    .sidebar .foot { margin: 0; }
+    .main { padding: 20px 16px 96px; }
+    h1 { font-size: 22px; }
+  }
+
+  /* ---------- Overview ---------- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 20px; }
+  .stat { display: flex; flex-direction: column; gap: 8px; }
+  .stat .top { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 14px; font-weight: 600; }
+  .stat .top .ic { width: 36px; height: 36px; border-radius: 10px; background: var(--soft); display: grid; place-items: center; color: var(--text); }
+  .stat .val { font-size: 32px; font-weight: 700; line-height: 1.1; }
+  .stat .hint { font-size: 13px; color: var(--muted); }
+  .two { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .two { grid-template-columns: 1fr; } }
+  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .link { background: none; padding: 0; color: var(--muted); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+  .mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .mini-grid .m { border-radius: 12px; overflow: hidden; background: var(--soft); aspect-ratio: 1; padding: 0; cursor: zoom-in; }
+  .mini-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .top-list { list-style: none; margin: 0; padding: 0; }
+  .top-list li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .top-list li:last-child { border-bottom: 0; }
+  .top-list .rank { width: 26px; height: 26px; border-radius: 8px; background: var(--soft); display: grid; place-items: center; font-size: 13px; font-weight: 700; flex: none; }
+  .top-list .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; font-size: 14px; }
+  .top-list .bar { width: 70px; height: 6px; border-radius: 999px; background: var(--soft); overflow: hidden; flex: none; }
+  .top-list .bar span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+  .top-list .cnt { font-size: 13px; color: var(--muted); width: 24px; text-align: left; flex: none; }
+
+  /* ---------- Review photos ---------- */
+  .step { display: flex; align-items: center; gap: 10px; font-weight: 700; margin-bottom: 14px; }
+  .num { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-size: 13px; flex: none; }
+  .opt { font-weight: 400; font-size: 13px; color: var(--muted); background: var(--soft); padding: 1px 10px; border-radius: 999px; }
   .upload { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
-  @media (max-width: 720px) { .upload { grid-template-columns: 1fr; } }
-
+  @media (max-width: 900px) { .upload { grid-template-columns: 1fr; } }
   .results { margin-top: 10px; max-height: 280px; overflow-y: auto; }
   .prod { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 10px; cursor: pointer; }
   .prod:hover { background: var(--soft); }
@@ -57,17 +118,13 @@
   .selected img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--soft); flex: none; }
   .selected .grow { flex: 1; min-width: 0; }
   .none-note { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--soft); font-size: 13px; color: var(--muted); }
-
   .drop { display: block; border: 2px dashed var(--line); border-radius: 14px; padding: 36px 16px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
   .drop.over, .drop:hover { border-color: var(--text); background: var(--soft); }
   .drop svg { width: 36px; height: 36px; color: var(--muted); }
   .preview { position: relative; border-radius: 14px; overflow: hidden; background: var(--soft); }
   .preview img { width: 100%; height: auto; max-height: 70vh; object-fit: contain; display: block; margin: 0 auto; }
   .preview .change { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,.6); color: #fff; padding: 6px 12px; font-size: 13px; border-radius: 999px; }
-  .msg { margin-top: 12px; font-size: 14px; }
-  .msg.ok { color: var(--ok); } .msg.err { color: var(--err); }
 
-  /* Recent cards */
   .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
   .cards { columns: 4 220px; column-gap: 16px; }
   .cards > * { break-inside: avoid; margin-bottom: 16px; }
@@ -77,10 +134,6 @@
   .rcard .img { display: block; width: 100%; padding: 0; border-radius: 0; background: var(--soft); cursor: zoom-in; }
   .rcard .img img { width: 100%; height: auto; display: block; }
   .rcard .img .processing { aspect-ratio: 4 / 5; display: grid; place-items: center; color: var(--muted); font-size: 13px; cursor: default; }
-  .lightbox { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.88); display: flex; align-items: center; justify-content: center; padding: 16px; cursor: zoom-out; }
-  .lightbox img { max-width: 100%; max-height: calc(100vh - 80px); object-fit: contain; border-radius: 8px; }
-  .lightbox .lb-cap { position: absolute; bottom: 16px; inset-inline: 16px; text-align: center; color: #fff; font-size: 14px; }
-  .lightbox .lb-close { position: absolute; top: 12px; left: 12px; width: 40px; height: 40px; padding: 0; border-radius: 50%; background: rgba(255,255,255,.15); color: #fff; font-size: 22px; }
   .rcard .body { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-top: 1px solid var(--line); }
   .rcard .pimg { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; background: var(--soft); flex: none; }
   .rcard .info { min-width: 0; flex: 1; }
@@ -89,20 +142,33 @@
   .rcard .date { color: var(--muted); font-size: 12px; }
   .rcard.new { outline: 2px solid var(--ok); outline-offset: -2px; }
   .skeleton { width: 100%; background: linear-gradient(90deg, var(--soft) 25%, var(--line) 50%, var(--soft) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: var(--radius); aspect-ratio: 4 / 5.6; }
+  .skeleton.line { aspect-ratio: auto; height: 118px; }
   @keyframes shimmer { to { background-position: -200% 0; } }
   .empty { text-align: center; padding: 40px 16px; color: var(--muted); }
 
-  .login { max-width: 380px; margin: 12vh auto 0; }
-  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .lightbox { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.88); display: flex; align-items: center; justify-content: center; padding: 16px; cursor: zoom-out; }
+  .lightbox img { max-width: 100%; max-height: calc(100vh - 80px); object-fit: contain; border-radius: 8px; }
+  .lightbox .lb-cap { position: absolute; bottom: 16px; inset-inline: 16px; text-align: center; color: #fff; font-size: 14px; }
+  .lightbox .lb-close { position: absolute; top: 12px; left: 12px; width: 40px; height: 40px; padding: 0; border-radius: 50%; background: rgba(255,255,255,.15); color: #fff; font-size: 22px; }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <!-- Login -->
-  <div id="loginView" class="card login">
-    <h1 style="margin-bottom:4px">رفع صور التقييمات</h1>
+<!-- Icons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-photo" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M15 17l5-5-5-5M20 12H9M12 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/></symbol>
+</svg>
+
+<!-- Login -->
+<div id="loginView" class="login-wrap">
+  <div class="card login">
+    <div class="brand" style="margin-bottom:18px"><span class="logo">K</span>KEWI</div>
+    <h1 style="font-size:22px">لوحة التحكم</h1>
     <p class="sub" style="margin-bottom:18px">اكتب كلمة السر عشان تدخل</p>
     <form id="loginForm">
       <input id="pw" type="password" placeholder="كلمة السر" autocomplete="current-password" required>
@@ -110,57 +176,91 @@
       <div id="loginMsg" class="msg err"></div>
     </form>
   </div>
+</div>
 
-  <!-- App -->
-  <div id="appView" class="hidden">
-    <header>
-      <div>
-        <h1>رفع صور التقييمات</h1>
-        <p class="sub">الصورة بتتضاف لـ Product Review Images وتظهر في المتجر</p>
+<!-- Dashboard -->
+<div id="appView" class="shell hidden">
+  <aside class="sidebar">
+    <div class="brand"><span class="logo">K</span>KEWI</div>
+    <div class="nav-label">القائمة</div>
+    <nav class="nav">
+      <a href="#overview" data-tab="overview"><svg class="i"><use href="#i-home"/></svg>نظرة عامة</a>
+      <a href="#reviews" data-tab="reviews"><svg class="i"><use href="#i-photo"/></svg>صور التقييمات<span id="navCount" class="badge hidden"></span></a>
+    </nav>
+    <div class="foot nav">
+      <a href="#" id="logout"><svg class="i"><use href="#i-out"/></svg>خروج</a>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- Overview tab -->
+    <div id="tab-overview" class="page hidden">
+      <div class="page-head">
+        <div><h1 id="greet">أهلاً 👋</h1><p class="sub">ملخص سريع لصور التقييمات في المتجر</p></div>
+        <button class="btn" data-go="reviews">+ رفع صورة تقييم</button>
       </div>
-      <button id="logout" class="btn-ghost">خروج</button>
-    </header>
+      <div id="stats" class="stats"></div>
+      <div class="two">
+        <section class="card">
+          <div class="card-head"><h2>آخر الصور</h2><button class="link" data-go="reviews">عرض الكل</button></div>
+          <div id="miniGrid" class="mini-grid"></div>
+        </section>
+        <section class="card">
+          <div class="card-head"><h2>أكتر المنتجات صوراً</h2></div>
+          <ul id="topList" class="top-list"></ul>
+        </section>
+      </div>
+    </div>
 
-    <div class="upload">
-      <section class="card">
-        <div class="step"><span class="num">1</span>المنتج <span class="opt">اختياري</span></div>
-        <div id="pickBox">
-          <input id="search" type="text" placeholder="ابحث باسم المنتج…" autocomplete="off">
-          <div id="results" class="results"></div>
-        </div>
-        <div id="selectedBox" class="selected hidden">
-          <img id="selImg" alt="">
-          <div class="grow"><div id="selTitle" style="font-weight:700"></div><div id="selHandle" class="muted" style="direction:ltr;text-align:right"></div></div>
-          <button id="changeProd" class="btn-ghost">إلغاء</button>
-        </div>
-        <div id="noneNote" class="none-note">مش لازم تختار منتج — لو سبته فاضي الصورة هتظهر في بوب-أب التقييمات العام بس.</div>
-      </section>
+    <!-- Review photos tab -->
+    <div id="tab-reviews" class="page hidden">
+      <div class="page-head">
+        <div><h1>صور التقييمات</h1><p class="sub">الصورة بتتضاف لـ Product Review Images وتظهر في المتجر</p></div>
+      </div>
 
-      <section class="card">
-        <div class="step"><span class="num">2</span>الصورة</div>
-        <label id="drop" class="drop">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-          <div style="font-weight:600;margin-top:6px">اسحب الصورة هنا أو دوس للاختيار</div>
-          <div class="muted">صورة واحدة — JPG · PNG · WEBP</div>
-          <input id="fileInput" type="file" accept="image/*" hidden>
-        </label>
-        <div id="preview" class="preview hidden">
-          <img id="previewImg" alt="">
-          <button id="changeImg" class="change" type="button">تغيير الصورة</button>
+      <div class="upload">
+        <section class="card">
+          <div class="step"><span class="num">1</span>المنتج <span class="opt">اختياري</span></div>
+          <div id="pickBox">
+            <input id="search" type="text" placeholder="ابحث باسم المنتج…" autocomplete="off">
+            <div id="results" class="results"></div>
+          </div>
+          <div id="selectedBox" class="selected hidden">
+            <img id="selImg" alt="">
+            <div class="grow"><div id="selTitle" style="font-weight:700"></div><div id="selHandle" class="muted" style="direction:ltr;text-align:right"></div></div>
+            <button id="changeProd" class="btn-ghost">إلغاء</button>
+          </div>
+          <div id="noneNote" class="none-note">مش لازم تختار منتج — لو سبته فاضي الصورة هتظهر في بوب-أب التقييمات العام بس.</div>
+        </section>
+
+        <section class="card">
+          <div class="step"><span class="num">2</span>الصورة</div>
+          <label id="drop" class="drop">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+            <div style="font-weight:600;margin-top:6px">اسحب الصورة هنا أو دوس للاختيار</div>
+            <div class="muted">صورة واحدة — JPG · PNG · WEBP</div>
+            <input id="fileInput" type="file" accept="image/*" hidden>
+          </label>
+          <div id="preview" class="preview hidden">
+            <img id="previewImg" alt="">
+            <button id="changeImg" class="change" type="button">تغيير الصورة</button>
+          </div>
+          <button id="uploadBtn" class="btn full" style="margin-top:16px" disabled>رفع الصورة</button>
+          <div id="uploadMsg" class="msg"></div>
+        </section>
+      </div>
+
+      <section>
+        <div class="row">
+          <h2>الصور المضافة</h2>
+          <button id="refresh" class="btn-ghost">تحديث</button>
         </div>
-        <button id="uploadBtn" class="btn full" style="margin-top:16px" disabled>رفع الصورة</button>
-        <div id="uploadMsg" class="msg"></div>
+        <div id="recent" class="cards"></div>
       </section>
     </div>
 
-    <section>
-      <div class="row">
-        <h2>الصور المضافة</h2>
-        <button id="refresh" class="btn-ghost">تحديث</button>
-      </div>
-      <div id="recent" class="cards"></div>
-    </section>
-  </div>
+  </main>
 </div>
 
 <script>
@@ -174,6 +274,7 @@ let product = null;
 let file = null, fileUrl = null;
 let busy = false;
 let lastCreatedId = null;
+const loaded = {}; // tab → loaded once
 
 async function api(path, { method = 'GET', body } = {}) {
   const res = await fetch(path, {
@@ -188,20 +289,84 @@ async function api(path, { method = 'GET', body } = {}) {
 }
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 const fmtDate = (iso) => { try { return new Date(iso).toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' }); } catch { return ''; } };
+const fmtNum = (n) => n == null ? '—' : Number(n).toLocaleString('ar-EG');
 
 /* ---------- Auth ---------- */
-function showApp() { $('loginView').classList.add('hidden'); $('appView').classList.remove('hidden'); searchProducts(''); loadRecent(); }
-function logout() { password = ''; store.set(''); $('appView').classList.add('hidden'); $('loginView').classList.remove('hidden'); }
+function showApp() {
+  $('loginView').classList.add('hidden'); $('appView').classList.remove('hidden');
+  const h = new Date().getHours();
+  $('greet').textContent = (h < 12 ? 'صباح الخير' : 'مساء الخير') + ' 👋';
+  route();
+}
+function logout() {
+  password = ''; store.set('');
+  $('appView').classList.add('hidden'); $('loginView').classList.remove('hidden');
+  Object.keys(loaded).forEach((k) => delete loaded[k]);
+}
 $('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   password = $('pw').value; $('loginMsg').textContent = '';
   try { await api('/api/login', { method: 'POST', body: {} }); store.set(password); showApp(); }
   catch (err) { $('loginMsg').textContent = err.message; }
 });
-$('logout').onclick = logout;
+$('logout').onclick = (e) => { e.preventDefault(); logout(); };
 if (password) api('/api/login', { method: 'POST', body: {} }).then(showApp).catch(() => {});
 
-/* ---------- Product (optional) ---------- */
+/* ---------- Tabs (hash routing) ---------- */
+const TABS = ['overview', 'reviews'];
+function route() {
+  const tab = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
+  TABS.forEach((t) => $('tab-' + t).classList.toggle('hidden', t !== tab));
+  document.querySelectorAll('.nav a[data-tab]').forEach((a) => a.classList.toggle('active', a.dataset.tab === tab));
+  window.scrollTo(0, 0);
+  if (password && !loaded[tab]) { loaded[tab] = true; (tab === 'overview' ? loadOverview : loadReviewsTab)(); }
+}
+window.addEventListener('hashchange', route);
+document.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => { location.hash = b.dataset.go; });
+
+/* ---------- Overview ---------- */
+async function loadOverview() {
+  $('stats').innerHTML = '<div class="skeleton line"></div>'.repeat(4);
+  $('miniGrid').innerHTML = '<div class="skeleton" style="aspect-ratio:1"></div>'.repeat(6);
+  $('topList').innerHTML = '<li class="muted"><span class="spinner"></span> بيحمّل…</li>';
+  try {
+    const [s, recent] = await Promise.all([api('/api/stats'), api('/api/recent?limit=6')]);
+    setNavCount(s.totalPhotos);
+    const coverage = s.productsCount ? Math.round((s.productsWithPhotos / s.productsCount) * 100) : null;
+    const stat = (icon, label, val, hint) => `
+      <div class="card stat">
+        <div class="top"><span>${label}</span><span class="ic"><svg class="i"><use href="#${icon}"/></svg></span></div>
+        <div class="val">${val}</div><div class="hint">${hint}</div>
+      </div>`;
+    $('stats').innerHTML =
+      stat('i-photo', 'إجمالي صور التقييمات', fmtNum(s.totalPhotos), `${fmtNum(s.withoutProduct)} منهم بدون منتج`) +
+      stat('i-cal', 'صور الشهر ده', fmtNum(s.photosThisMonth), 'من أول الشهر') +
+      stat('i-link', 'منتجات عليها صور', fmtNum(s.productsWithPhotos), coverage != null ? `${fmtNum(coverage)}% من المنتجات` : '') +
+      stat('i-box', 'إجمالي المنتجات', fmtNum(s.productsCount), 'في المتجر');
+
+    const imgs = recent.filter((r) => r.image);
+    $('miniGrid').innerHTML = imgs.length
+      ? imgs.map((r) => `<button class="m" data-full="${esc(r.full || r.image)}" data-cap="${esc(r.product || 'بدون منتج')}"><img src="${esc(r.image)}" alt="" loading="lazy"></button>`).join('')
+      : '<div class="muted" style="grid-column:1/-1">لسه مفيش صور</div>';
+    $('miniGrid').querySelectorAll('.m').forEach((b) => b.onclick = () => openLightbox(b.dataset.full, b.dataset.cap));
+
+    const max = s.topProducts[0]?.count || 1;
+    $('topList').innerHTML = s.topProducts.length
+      ? s.topProducts.map((p, i) => `
+        <li><span class="rank">${fmtNum(i + 1)}</span><span class="name">${esc(p.title)}</span>
+          <span class="bar"><span style="width:${Math.round((p.count / max) * 100)}%"></span></span><span class="cnt">${fmtNum(p.count)}</span></li>`).join('')
+      : '<li class="muted">لسه مفيش صور مربوطة بمنتجات</li>';
+  } catch (err) {
+    loaded.overview = false;
+    $('stats').innerHTML = `<div class="card msg err" style="grid-column:1/-1">${esc(err.message)}</div>`;
+    $('miniGrid').innerHTML = ''; $('topList').innerHTML = '';
+  }
+}
+function setNavCount(n) { if (n == null) return; $('navCount').textContent = fmtNum(n); $('navCount').classList.remove('hidden'); }
+
+/* ---------- Review photos tab ---------- */
+function loadReviewsTab() { searchProducts(''); loadRecent(); }
+
 let searchTimer, searchSeq = 0;
 $('search').addEventListener('input', (e) => { clearTimeout(searchTimer); searchTimer = setTimeout(() => searchProducts(e.target.value), 300); });
 async function searchProducts(q) {
@@ -229,7 +394,6 @@ function clearProduct() {
 }
 $('changeProd').onclick = clearProduct;
 
-/* ---------- Single image ---------- */
 const drop = $('drop');
 ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
@@ -272,6 +436,7 @@ $('uploadBtn').onclick = async () => {
     lastCreatedId = result.metaobject?.id || null;
     showMsg('ok', product ? `تمام! الصورة اتضافت لـ «${product.title}»` : 'تمام! الصورة اتضافت بدون منتج');
     resetFile(); clearProduct();
+    loaded.overview = false; // refresh stats next time the overview opens
     loadRecent();
   } catch (err) {
     showMsg('err', err.message);
@@ -282,19 +447,6 @@ $('uploadBtn').onclick = async () => {
   }
 };
 
-/* ---------- Lightbox (full-size image) ---------- */
-function openLightbox(src, caption) {
-  const lb = document.createElement('div');
-  lb.className = 'lightbox';
-  lb.innerHTML = `<button class="lb-close" aria-label="إغلاق">×</button><img src="${esc(src)}" alt=""><div class="lb-cap">${esc(caption)}</div>`;
-  const close = () => { lb.remove(); document.removeEventListener('keydown', onKey); };
-  const onKey = (e) => { if (e.key === 'Escape') close(); };
-  lb.onclick = close;
-  document.addEventListener('keydown', onKey);
-  document.body.appendChild(lb);
-}
-
-/* ---------- Recent cards ---------- */
 let recentRetries = 0;
 $('refresh').onclick = () => { recentRetries = 0; loadRecent(); };
 async function loadRecent() {
@@ -313,14 +465,26 @@ async function loadRecent() {
             <div class="date">${esc(fmtDate(r.updatedAt))}</div>
           </div>
         </div>
-      </article>`).join('') : '<div class="empty card" style="grid-column:1/-1">لسه مفيش صور مضافة</div>';
+      </article>`).join('') : '<div class="empty card">لسه مفيش صور مضافة</div>';
     $('recent').querySelectorAll('button.img').forEach((b) => b.onclick = () => openLightbox(b.dataset.full, b.dataset.cap));
     // Newly created files take a few seconds to process on Shopify's side.
     if (list.some((r) => !r.image) && recentRetries++ < 5) setTimeout(loadRecent, 4000);
     else if (list.every((r) => r.image)) recentRetries = 0;
   } catch (err) {
-    $('recent').innerHTML = `<div class="empty card msg err" style="grid-column:1/-1">${esc(err.message)}</div>`;
+    $('recent').innerHTML = `<div class="empty card msg err">${esc(err.message)}</div>`;
   }
+}
+
+/* ---------- Lightbox (full-size image) ---------- */
+function openLightbox(src, caption) {
+  const lb = document.createElement('div');
+  lb.className = 'lightbox';
+  lb.innerHTML = `<button class="lb-close" aria-label="إغلاق">×</button><img src="${esc(src)}" alt=""><div class="lb-cap">${esc(caption)}</div>`;
+  const close = () => { lb.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  lb.onclick = close;
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(lb);
 }
 </script>
 </body>

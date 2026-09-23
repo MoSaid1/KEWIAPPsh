@@ -1,10 +1,11 @@
 import { route, gql, METAOBJECT_TYPE } from './_shopify.js';
 
-// GET /api/recent → latest review-image entries with their image + product
+// GET /api/recent?limit=N → latest review-image entries with their image + product
 export default route('GET', async (req, res) => {
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 30, 1), 100);
   const data = await gql(
-    `query ($type: String!) {
-      metaobjects(type: $type, first: 30, reverse: true, sortKey: "updated_at") {
+    `query ($type: String!, $limit: Int!) {
+      metaobjects(type: $type, first: $limit, reverse: true, sortKey: "updated_at") {
         nodes {
           id
           updatedAt
@@ -17,7 +18,7 @@ export default route('GET', async (req, res) => {
         }
       }
     }`,
-    { type: METAOBJECT_TYPE }
+    { type: METAOBJECT_TYPE, limit }
   );
   res.json(
     data.metaobjects.nodes.map((n) => ({
