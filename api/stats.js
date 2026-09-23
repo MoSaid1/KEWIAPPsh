@@ -6,17 +6,13 @@ export default route('GET', async (req, res) => {
     `query ($type: String!) {
       productsCount { count }
       metaobjects(type: $type, first: 250) {
-        nodes { updatedAt product: field(key: "product") { reference { ... on Product { id title } } } }
+        nodes { product: field(key: "product") { reference { ... on Product { id title } } } }
       }
     }`,
     { type: METAOBJECT_TYPE }
   );
 
   const entries = data.metaobjects.nodes;
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  monthStart.setHours(0, 0, 0, 0);
-
   const perProduct = new Map();
   let withoutProduct = 0;
   for (const e of entries) {
@@ -29,7 +25,6 @@ export default route('GET', async (req, res) => {
 
   res.json({
     totalPhotos: entries.length,
-    photosThisMonth: entries.filter((e) => new Date(e.updatedAt) >= monthStart).length,
     productsCount: data.productsCount?.count ?? null,
     productsWithPhotos: perProduct.size,
     withoutProduct,
