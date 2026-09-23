@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>رفع صور التقييمات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4f1; --card: #ffffff; --text: #1d1d1f; --muted: #6e6e73; --line: #e5e3de;
+    --accent: #1d1d1f; --accent-text: #ffffff; --soft: #f0eee9; --ok: #1f8a4c; --err: #c0392b;
+    --radius: 16px; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#111113; --card:#1c1c1f; --text:#f2f2f2; --muted:#9a9aa0; --line:#2c2c30;
+      --accent:#f2f2f2; --accent-text:#111113; --soft:#26262a; --ok:#4cc27e; --err:#ff6b5b;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35); }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Cairo', system-ui, sans-serif; line-height: 1.6; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 12px; }
+  h1 { font-size: 24px; margin: 0; font-weight: 700; }
+  .sub { color: var(--muted); font-size: 14px; margin: 2px 0 0; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; }
+  .step { display: flex; align-items: center; gap: 10px; font-weight: 700; margin-bottom: 14px; }
+  .num { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-size: 13px; flex: none; }
+  input[type=text], input[type=password] { width: 100%; font: inherit; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--soft); color: var(--text); outline: none; transition: border-color .15s; }
+  input:focus { border-color: var(--text); }
+  button { font: inherit; cursor: pointer; border: 0; border-radius: 12px; padding: 12px 18px; font-weight: 600; transition: opacity .15s, transform .05s; }
+  button:active { transform: scale(.98); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  .btn { background: var(--accent); color: var(--accent-text); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); padding: 8px 14px; font-size: 14px; }
+  .full { width: 100%; }
+  .hidden { display: none !important; }
+
+  .results { margin-top: 10px; max-height: 300px; overflow-y: auto; border-radius: 12px; }
+  .prod { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 10px; cursor: pointer; }
+  .prod:hover { background: var(--soft); }
+  .prod img, .prod .ph { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: var(--soft); flex: none; }
+  .prod .t { font-weight: 600; font-size: 15px; }
+  .prod .h { color: var(--muted); font-size: 12px; direction: ltr; text-align: right; }
+  .selected { display: flex; align-items: center; gap: 12px; padding: 10px; border: 2px solid var(--text); border-radius: 12px; }
+  .selected .grow { flex: 1; min-width: 0; }
+  .muted { color: var(--muted); font-size: 14px; }
+
+  .drop { border: 2px dashed var(--line); border-radius: 14px; padding: 32px 16px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+  .drop.over, .drop:hover { border-color: var(--text); background: var(--soft); }
+  .drop svg { width: 36px; height: 36px; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-top: 14px; }
+  .thumb { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--soft); }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb .x { position: absolute; top: 6px; left: 6px; width: 26px; height: 26px; padding: 0; border-radius: 50%; background: rgba(0,0,0,.6); color: #fff; font-size: 16px; line-height: 26px; }
+  .thumb .state { position: absolute; inset: auto 0 0 0; padding: 4px; font-size: 12px; text-align: center; color: #fff; background: rgba(0,0,0,.55); }
+  .thumb.done .state { background: var(--ok); }
+  .thumb.fail .state { background: var(--err); }
+  .thumb .cap { position: absolute; inset: auto 0 0 0; padding: 4px 6px; font-size: 11px; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.75)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .msg { margin-top: 12px; font-size: 14px; }
+  .msg.ok { color: var(--ok); } .msg.err { color: var(--err); }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .login { max-width: 380px; margin: 12vh auto 0; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Login -->
+  <div id="loginView" class="card login">
+    <h1 style="margin-bottom:4px">رفع صور التقييمات</h1>
+    <p class="sub" style="margin-bottom:18px">اكتب كلمة السر عشان تدخل</p>
+    <form id="loginForm">
+      <input id="pw" type="password" placeholder="كلمة السر" autocomplete="current-password" required>
+      <button class="btn full" style="margin-top:12px" type="submit">دخول</button>
+      <div id="loginMsg" class="msg err"></div>
+    </form>
+  </div>
+
+  <!-- App -->
+  <div id="appView" class="hidden">
+    <header>
+      <div>
+        <h1>رفع صور التقييمات</h1>
+        <p class="sub">الصور بتتضاف لـ Product Review Images وتظهر في صفحة المنتج</p>
+      </div>
+      <button id="logout" class="btn-ghost">خروج</button>
+    </header>
+
+    <section class="card">
+      <div class="step"><span class="num">1</span>اختار المنتج</div>
+      <div id="pickBox">
+        <input id="search" type="text" placeholder="ابحث باسم المنتج…" autocomplete="off">
+        <div id="results" class="results"></div>
+      </div>
+      <div id="selectedBox" class="selected hidden">
+        <img id="selImg" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--soft)">
+        <div class="grow"><div id="selTitle" style="font-weight:700"></div><div id="selHandle" class="muted" style="direction:ltr;text-align:right"></div></div>
+        <button id="changeProd" class="btn-ghost">تغيير</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="step"><span class="num">2</span>ارفع الصور</div>
+      <label id="drop" class="drop">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        <div style="font-weight:600;margin-top:6px">اسحب الصور هنا أو دوس للاختيار</div>
+        <div class="muted">JPG · PNG · WEBP — تقدر تختار أكتر من صورة</div>
+        <input id="fileInput" type="file" accept="image/*" multiple hidden>
+      </label>
+      <div id="previews" class="grid"></div>
+      <button id="uploadBtn" class="btn full" style="margin-top:16px" disabled>رفع وإضافة للمنتج</button>
+      <div id="uploadMsg" class="msg"></div>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <div class="step" style="margin:0"><span class="num">3</span>آخر الصور المضافة</div>
+        <button id="refresh" class="btn-ghost">تحديث</button>
+      </div>
+      <div id="recent" class="grid" style="margin-top:0"></div>
+      <div id="recentMsg" class="muted"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const store = {
+  get() { try { return sessionStorage.getItem('kewi_pw') || ''; } catch { return ''; } },
+  set(v) { try { v ? sessionStorage.setItem('kewi_pw', v) : sessionStorage.removeItem('kewi_pw'); } catch {} },
+};
+let password = store.get();
+let product = null;
+let files = []; // { file, url, status }
+
+async function api(path, { method = 'GET', body } = {}) {
+  const res = await fetch(path, {
+    method,
+    headers: { 'x-password': password, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) { logout(); throw new Error('كلمة السر غلط'); }
+  if (!res.ok) throw new Error(data.error || 'حصل خطأ');
+  return data;
+}
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+/* ---------- Auth ---------- */
+function showApp() { $('loginView').classList.add('hidden'); $('appView').classList.remove('hidden'); searchProducts(''); loadRecent(); }
+function logout() { password = ''; store.set(''); $('appView').classList.add('hidden'); $('loginView').classList.remove('hidden'); }
+$('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  password = $('pw').value; $('loginMsg').textContent = '';
+  try { await api('/api/login', { method: 'POST', body: {} }); store.set(password); showApp(); }
+  catch (err) { $('loginMsg').textContent = err.message; }
+});
+$('logout').onclick = logout;
+if (password) api('/api/login', { method: 'POST', body: {} }).then(showApp).catch(() => {});
+
+/* ---------- Products ---------- */
+let searchTimer, searchSeq = 0;
+$('search').addEventListener('input', (e) => { clearTimeout(searchTimer); searchTimer = setTimeout(() => searchProducts(e.target.value), 300); });
+async function searchProducts(q) {
+  const seq = ++searchSeq;
+  $('results').innerHTML = '<div class="muted" style="padding:8px"><span class="spinner"></span> بيدور…</div>';
+  try {
+    const list = await api('/api/products?q=' + encodeURIComponent(q));
+    if (seq !== searchSeq) return;
+    $('results').innerHTML = list.length ? list.map((p, i) => `
+      <div class="prod" data-i="${i}">
+        ${p.image ? `<img src="${esc(p.image)}" alt="">` : '<div class="ph"></div>'}
+        <div><div class="t">${esc(p.title)}</div><div class="h">${esc(p.handle)}${p.status !== 'ACTIVE' ? ' · ' + esc(p.status.toLowerCase()) : ''}</div></div>
+      </div>`).join('') : '<div class="muted" style="padding:8px">مفيش منتجات بالاسم ده</div>';
+    $('results').querySelectorAll('.prod').forEach((el) => el.onclick = () => selectProduct(list[el.dataset.i]));
+  } catch (err) { if (seq === searchSeq) $('results').innerHTML = `<div class="msg err">${esc(err.message)}</div>`; }
+}
+function selectProduct(p) {
+  product = p;
+  $('selImg').src = p.image || ''; $('selTitle').textContent = p.title; $('selHandle').textContent = p.handle;
+  $('pickBox').classList.add('hidden'); $('selectedBox').classList.remove('hidden');
+  updateButton();
+}
+$('changeProd').onclick = () => { product = null; $('selectedBox').classList.add('hidden'); $('pickBox').classList.remove('hidden'); $('search').focus(); updateButton(); };
+
+/* ---------- Files ---------- */
+const drop = $('drop');
+['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', (e) => addFiles(e.dataTransfer.files));
+$('fileInput').addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
+
+function addFiles(list) {
+  for (const f of list) if (f.type.startsWith('image/')) files.push({ file: f, url: URL.createObjectURL(f), status: 'pending' });
+  $('uploadMsg').textContent = ''; renderPreviews();
+}
+function renderPreviews() {
+  const label = { pending: '', uploading: '<span class="spinner"></span>', done: 'تم ✓', fail: 'فشل' };
+  $('previews').innerHTML = files.map((f, i) => `
+    <div class="thumb ${f.status}">
+      <img src="${f.url}" alt="">
+      ${f.status === 'pending' ? `<button class="x" data-i="${i}" aria-label="حذف">×</button>` : `<div class="state">${label[f.status]}</div>`}
+    </div>`).join('');
+  $('previews').querySelectorAll('.x').forEach((b) => b.onclick = (e) => { e.preventDefault(); URL.revokeObjectURL(files[b.dataset.i].url); files.splice(b.dataset.i, 1); renderPreviews(); });
+  updateButton();
+}
+function updateButton() { $('uploadBtn').disabled = !product || !files.some((f) => f.status === 'pending' || f.status === 'fail'); }
+
+async function uploadOne(item) {
+  const { file } = item;
+  const target = await api('/api/staged', { method: 'POST', body: { filename: file.name, mimeType: file.type, fileSize: file.size } });
+  const form = new FormData();
+  target.parameters.forEach((p) => form.append(p.name, p.value));
+  form.append('file', file);
+  const up = await fetch(target.url, { method: 'POST', body: form });
+  if (!up.ok) throw new Error('فشل رفع الملف لشوبيفاي');
+  await api('/api/create', { method: 'POST', body: { resourceUrl: target.resourceUrl, productId: product.id, alt: product.title } });
+}
+
+$('uploadBtn').onclick = async () => {
+  const queue = files.filter((f) => f.status === 'pending' || f.status === 'fail');
+  $('uploadBtn').disabled = true; $('uploadMsg').className = 'msg'; $('uploadMsg').textContent = '';
+  let ok = 0, lastErr = '';
+  for (const item of queue) {
+    item.status = 'uploading'; renderPreviews(); $('uploadBtn').disabled = true;
+    try { await uploadOne(item); item.status = 'done'; ok++; }
+    catch (err) { item.status = 'fail'; lastErr = err.message; }
+    renderPreviews(); $('uploadBtn').disabled = true;
+  }
+  const failed = queue.length - ok;
+  $('uploadMsg').className = 'msg ' + (failed ? 'err' : 'ok');
+  $('uploadMsg').textContent = failed ? `اترفع ${ok} وفشل ${failed} — ${lastErr}` : `تمام! اتضافت ${ok} صورة لـ «${product.title}»`;
+  updateButton();
+  if (ok) {
+    loadRecent();
+    if (!failed) setTimeout(() => { files.forEach((f) => URL.revokeObjectURL(f.url)); files = []; renderPreviews(); }, 2500);
+  }
+};
+
+/* ---------- Recent ---------- */
+let recentRetries = 0;
+$('refresh').onclick = loadRecent;
+async function loadRecent() {
+  $('recentMsg').innerHTML = '<span class="spinner"></span> بيحمّل…';
+  try {
+    const list = await api('/api/recent');
+    $('recentMsg').textContent = list.length ? '' : 'لسه مفيش صور';
+    $('recent').innerHTML = list.map((r) => `
+      <div class="thumb" title="${esc(r.product)}">
+        ${r.image ? `<img src="${esc(r.image)}" alt="" loading="lazy">` : ''}
+        <button class="x" data-id="${esc(r.id)}" aria-label="حذف">×</button>
+        <div class="cap">${esc(r.product)}</div>
+      </div>`).join('');
+    $('recent').querySelectorAll('.x').forEach((b) => b.onclick = async () => {
+      if (!confirm('تمسح الصورة دي من التقييمات؟')) return;
+      b.disabled = true;
+      try { await api('/api/delete', { method: 'POST', body: { id: b.dataset.id } }); b.closest('.thumb').remove(); }
+      catch (err) { alert(err.message); b.disabled = false; }
+    });
+    // New files may still be processing on Shopify's side — refresh once if any image is missing.
+    if (list.some((r) => !r.image) && recentRetries++ < 5) setTimeout(loadRecent, 4000);
+    else if (list.every((r) => r.image)) recentRetries = 0;
+  } catch (err) { $('recentMsg').textContent = err.message; }
+}
+</script>
+</body>
+</html>
