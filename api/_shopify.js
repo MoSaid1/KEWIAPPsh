@@ -2,7 +2,27 @@
 // Files starting with "_" are not exposed as routes by Vercel.
 import { timingSafeEqual } from 'node:crypto';
 
-const STORE = (process.env.SHOPIFY_STORE || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
+// Accepts "kewi", "kewi.myshopify.com", "https://kewi.myshopify.com/" or
+// "https://admin.shopify.com/store/kewi" and normalizes to "kewi.myshopify.com".
+function normalizeStore(raw) {
+  let s = String(raw || '').trim().toLowerCase().replace(/^https?:\/\//, '');
+  const admin = s.match(/admin\.shopify\.com\/store\/([^/?#]+)/);
+  if (admin) return `${admin[1]}.myshopify.com`;
+  s = s.split(/[/?#]/)[0];
+  if (s && !s.includes('.')) s = `${s}.myshopify.com`;
+  return s;
+}
+const STORE = normalizeStore(process.env.SHOPIFY_STORE);
+
+// Node's fetch throws a bare "fetch failed"; include the underlying cause and host.
+async function safeFetch(url, options) {
+  try {
+    return await fetch(url, options);
+  } catch (err) {
+    const cause = err.cause?.code || err.cause?.message || err.message;
+    throw new Error(`مش قادر يوصل لـ ${new URL(url).host} (${cause}) — راجع SHOPIFY_STORE`);
+  }
+}
 const API_VERSION = process.env.SHOPIFY_API_VERSION || '2026-07';
 export const METAOBJECT_TYPE = process.env.METAOBJECT_TYPE || 'product_review_images';
 
@@ -15,7 +35,7 @@ async function getAccessToken() {
   if (process.env.SHOPIFY_ADMIN_TOKEN) return process.env.SHOPIFY_ADMIN_TOKEN;
   if (cachedToken && cachedToken.expiresAt > Date.now() + 60_000) return cachedToken.value;
 
-  const res = await fetch(`https://${STORE}/admin/oauth/access_token`, {
+  const res = await safeFetch(`https://${STORE}/admin/oauth/access_token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -35,7 +55,7 @@ async function getAccessToken() {
 
 export async function gql(query, variables = {}) {
   if (!STORE) throw new Error('SHOPIFY_STORE is not configured');
-  const res = await fetch(`https://${STORE}/admin/api/${API_VERSION}/graphql.json`, {
+  const res = await safeFetch(`https://${STORE}/admin/api/${API_VERSION}/graphql.json`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -43,6 +63,10 @@ export async function gql(query, variables = {}) {
     },
     body: JSON.stringify({ query, variables }),
   });
+  if (res.status === 404) throw new Error(`المتجر ${STORE} مش موجود — راجع SHOPIFY_STORE`);
+  if (res.status === 401 || res.status === 403) {
+    throw new Error(`شوبيفاي رفض الدخول (${res.status}) — راجع التوكن/Client secret والصلاحيات`);
+  }
   const json = await res.json().catch(() => ({}));
   if (!res.ok || json.errors) {
     const msg = json.errors ? JSON.stringify(json.errors) : `HTTP ${res.status}`;
