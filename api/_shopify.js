@@ -44,7 +44,13 @@ async function getAccessToken() {
       client_secret: process.env.SHOPIFY_CLIENT_SECRET || '',
     }),
   });
-  if (!res.ok) throw new Error(`Shopify token request failed (${res.status}): ${await res.text()}`);
+  if (!res.ok) {
+    const body = await res.text();
+    // Shopify answers OAuth errors with an HTML page; keep only the readable part.
+    const detail = body.match(/<div class="content--desc">s*(Oauth error[^<]+)/)?.[1] || body.match(/<title>([^<]+)/)?.[1] || body.slice(0, 200);
+    const hint = /app_not_installed/.test(body) ? ' — اعمل Install للـ App على نفس المتجر اللي في SHOPIFY_STORE' : '';
+    throw new Error(`Shopify token request failed (${res.status}): ${detail.trim()}${hint}`);
+  }
   const data = await res.json();
   cachedToken = {
     value: data.access_token,
