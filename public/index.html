@@ -61,21 +61,26 @@
   .drop { display: block; border: 2px dashed var(--line); border-radius: 14px; padding: 36px 16px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
   .drop.over, .drop:hover { border-color: var(--text); background: var(--soft); }
   .drop svg { width: 36px; height: 36px; color: var(--muted); }
-  .preview { position: relative; border-radius: 14px; overflow: hidden; background: var(--soft); aspect-ratio: 4 / 3; }
-  .preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .preview { position: relative; border-radius: 14px; overflow: hidden; background: var(--soft); }
+  .preview img { width: 100%; height: auto; max-height: 70vh; object-fit: contain; display: block; margin: 0 auto; }
   .preview .change { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,.6); color: #fff; padding: 6px 12px; font-size: 13px; border-radius: 999px; }
   .msg { margin-top: 12px; font-size: 14px; }
   .msg.ok { color: var(--ok); } .msg.err { color: var(--err); }
 
   /* Recent cards */
   .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-  .rcard { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform .2s, box-shadow .2s; display: flex; flex-direction: column; }
+  .cards { columns: 4 220px; column-gap: 16px; }
+  .cards > * { break-inside: avoid; margin-bottom: 16px; }
+  .cards > .empty { column-span: all; }
+  .rcard { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform .2s, box-shadow .2s; display: flex; flex-direction: column; width: 100%; }
   .rcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
-  .rcard .img { aspect-ratio: 4 / 5; background: var(--soft); overflow: hidden; }
-  .rcard .img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s; }
-  .rcard:hover .img img { transform: scale(1.04); }
-  .rcard .img .processing { height: 100%; display: grid; place-items: center; color: var(--muted); font-size: 13px; }
+  .rcard .img { display: block; width: 100%; padding: 0; border-radius: 0; background: var(--soft); cursor: zoom-in; }
+  .rcard .img img { width: 100%; height: auto; display: block; }
+  .rcard .img .processing { aspect-ratio: 4 / 5; display: grid; place-items: center; color: var(--muted); font-size: 13px; cursor: default; }
+  .lightbox { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.88); display: flex; align-items: center; justify-content: center; padding: 16px; cursor: zoom-out; }
+  .lightbox img { max-width: 100%; max-height: calc(100vh - 80px); object-fit: contain; border-radius: 8px; }
+  .lightbox .lb-cap { position: absolute; bottom: 16px; inset-inline: 16px; text-align: center; color: #fff; font-size: 14px; }
+  .lightbox .lb-close { position: absolute; top: 12px; left: 12px; width: 40px; height: 40px; padding: 0; border-radius: 50%; background: rgba(255,255,255,.15); color: #fff; font-size: 22px; }
   .rcard .body { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-top: 1px solid var(--line); }
   .rcard .pimg { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; background: var(--soft); flex: none; }
   .rcard .info { min-width: 0; flex: 1; }
@@ -83,7 +88,7 @@
   .rcard .pname.none { color: var(--muted); font-weight: 600; }
   .rcard .date { color: var(--muted); font-size: 12px; }
   .rcard.new { outline: 2px solid var(--ok); outline-offset: -2px; }
-  .skeleton { background: linear-gradient(90deg, var(--soft) 25%, var(--line) 50%, var(--soft) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: var(--radius); aspect-ratio: 4 / 5.6; }
+  .skeleton { width: 100%; background: linear-gradient(90deg, var(--soft) 25%, var(--line) 50%, var(--soft) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: var(--radius); aspect-ratio: 4 / 5.6; }
   @keyframes shimmer { to { background-position: -200% 0; } }
   .empty { text-align: center; padding: 40px 16px; color: var(--muted); }
 
@@ -277,6 +282,18 @@ $('uploadBtn').onclick = async () => {
   }
 };
 
+/* ---------- Lightbox (full-size image) ---------- */
+function openLightbox(src, caption) {
+  const lb = document.createElement('div');
+  lb.className = 'lightbox';
+  lb.innerHTML = `<button class="lb-close" aria-label="إغلاق">×</button><img src="${esc(src)}" alt=""><div class="lb-cap">${esc(caption)}</div>`;
+  const close = () => { lb.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  lb.onclick = close;
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(lb);
+}
+
 /* ---------- Recent cards ---------- */
 let recentRetries = 0;
 $('refresh').onclick = () => { recentRetries = 0; loadRecent(); };
@@ -286,7 +303,9 @@ async function loadRecent() {
     const list = await api('/api/recent');
     $('recent').innerHTML = list.length ? list.map((r) => `
       <article class="rcard${r.id === lastCreatedId ? ' new' : ''}">
-        <div class="img">${r.image ? `<img src="${esc(r.image)}" alt="${esc(r.product || '')}" loading="lazy">` : '<div class="processing"><span><span class="spinner"></span> شوبيفاي بيجهّز الصورة…</span></div>'}</div>
+        ${r.image
+          ? `<button type="button" class="img" data-full="${esc(r.full || r.image)}" data-cap="${esc(r.product || 'بدون منتج')}"><img src="${esc(r.image)}" alt="${esc(r.product || '')}"${r.width ? ` width="${r.width}" height="${r.height}"` : ''} loading="lazy"></button>`
+          : '<div class="img"><div class="processing"><span><span class="spinner"></span> شوبيفاي بيجهّز الصورة…</span></div></div>'}
         <div class="body">
           ${r.productImage ? `<img class="pimg" src="${esc(r.productImage)}" alt="">` : ''}
           <div class="info">
@@ -295,6 +314,7 @@ async function loadRecent() {
           </div>
         </div>
       </article>`).join('') : '<div class="empty card" style="grid-column:1/-1">لسه مفيش صور مضافة</div>';
+    $('recent').querySelectorAll('button.img').forEach((b) => b.onclick = () => openLightbox(b.dataset.full, b.dataset.cap));
     // Newly created files take a few seconds to process on Shopify's side.
     if (list.some((r) => !r.image) && recentRetries++ < 5) setTimeout(loadRecent, 4000);
     else if (list.every((r) => r.image)) recentRetries = 0;
